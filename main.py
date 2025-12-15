@@ -56,9 +56,9 @@ async def monitor_loop():
                     ]
                 )
 
-                # logger.info(
-                #     f"当前总市值: {total_val:.4f}, 检查完成. 警报数: {len(alerts)}\n{msg}"
-                # )
+                logger.info(
+                    f"当前总市值: {total_val:.4f}, 检查完成. 警报数: {len(alerts)}\n{msg}"
+                )
 
                 # 4. 发送警报
                 if current_config.settings.notification_enabled and alerts:
@@ -117,5 +117,20 @@ async def update_config_api(new_config: config_manager.ConfigModel):
 
 if __name__ == "__main__":
     import uvicorn
+    import argparse
 
-    uvicorn.run(app, host="0.0.0.0", port=8256)
+    parser = argparse.ArgumentParser(description="A-Share Stock Monitor")
+    parser.add_argument(
+        "--log-level",
+        default="info",
+        choices=["debug", "info", "warning", "error", "critical"],
+        help="Set the logging level",
+    )
+    args = parser.parse_args()
+
+    # 设置日志级别
+    log_level = getattr(logging, args.log_level.upper())
+    logging.getLogger().setLevel(log_level)
+    logger.setLevel(log_level)
+
+    uvicorn.run(app, host="0.0.0.0", port=8256, log_level=args.log_level.lower())

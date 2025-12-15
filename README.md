@@ -21,7 +21,8 @@
 2. **运行程序**:
 
    ```bash
-   python main.py
+   python main.py # 默认info级别
+   python main.py --log-level error
    ```
 
 ## API 使用

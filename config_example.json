@@ -9,7 +9,7 @@
         {
             "code": "sh518880",
             "name": "黄金ETF",
-            "held_shares": 1500,
+            "held_shares": 1000,
             "min_percentage": 15,
             "max_percentage": 35
         },
