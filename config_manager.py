@@ -25,8 +25,19 @@ class Settings(BaseModel):
     send_key: str = ""
 
 
+class SettingsPublic(BaseModel):
+    refresh_interval_seconds: int
+    alert_interval_seconds: int
+    notification_enabled: bool
+
+
 class ConfigModel(BaseModel):
     settings: Settings
+    portfolio: List[PortfolioItem]
+
+
+class ConfigModelPublic(BaseModel):
+    settings: SettingsPublic
     portfolio: List[PortfolioItem]
 
 
