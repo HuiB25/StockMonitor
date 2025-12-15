@@ -146,6 +146,28 @@ async def update_config_api(new_config_public: config_manager.ConfigModelPublic)
 
 @app.get("/status")
 async def get_status():
+    if not msg:
+        current_config = config_manager.get_config()
+        if not current_config:
+            return {"message": msg if msg else "No data available yet."}
+        codes = [item.code for item in current_config.portfolio]
+        if codes:
+            prices = await stock_service.fetch_prices(codes)
+            total_val, holdings, alerts = stock_service.calculate_portfolio(
+                [item.model_dump() for item in current_config.portfolio], prices
+            )
+
+            msg = (
+                "【持仓详情】\n\n"
+                + f"当前总市值: {total_val:.4f}\n\n"
+                + "\n\n".join(
+                    [
+                        f"{h['name']}({h['code']}): 价格 {h['price']:.4f}, 持股 {h['shares']}, 市值 {h['market_value']:.4f}, 占比 {h.get('current_pct',0):.4f}%"
+                        for h in holdings
+                    ]
+                )
+            )
+
     return {"message": msg if msg else "No data available yet."}
 
 
