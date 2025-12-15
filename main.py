@@ -146,6 +146,7 @@ async def update_config_api(new_config_public: config_manager.ConfigModelPublic)
 
 @app.get("/status")
 async def get_status():
+    global msg
     if not msg:
         current_config = config_manager.get_config()
         if not current_config:
