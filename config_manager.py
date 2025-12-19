@@ -16,6 +16,7 @@ class PortfolioItem(BaseModel):
     held_shares: int
     min_percentage: float
     max_percentage: float
+    net_value: Optional[float] = None
 
 
 class Settings(BaseModel):

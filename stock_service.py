@@ -76,7 +76,12 @@ class StockService:
         for item in portfolio_config:
             code = item["code"]
             shares = item["held_shares"]
-            price = current_prices.get(code, 0.0)
+
+            # 如果 code 为空且设置了 net_value，使用 net_value
+            if not code and item.get("net_value"):
+                price = item["net_value"]
+            else:
+                price = current_prices.get(code, 0.0)
 
             market_value = price * shares
             total_value += market_value

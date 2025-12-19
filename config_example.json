@@ -21,7 +21,8 @@
             "max_percentage": 35
         },
         {
-            "code": "sh511880",
+            "code": "",
+            "net_value": 101,
             "name": "银华日利",
             "held_shares": 100,
             "min_percentage": 15,

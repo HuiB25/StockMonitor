@@ -11,6 +11,7 @@ export interface PortfolioItem {
   held_shares: number;
   min_percentage: number;
   max_percentage: number;
+  net_value?: number;
 }
 
 export interface Config {

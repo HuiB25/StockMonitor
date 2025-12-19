@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Typography, Card, Form, Input, InputNumber, Switch, Button, Table, Space, message } from 'antd';
+import { Layout, Typography, Card, Form, Input, InputNumber, Switch, Button, Table, Space, message, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, ReloadOutlined, SaveOutlined } from '@ant-design/icons';
 import { getConfig, getStatus, updateConfig } from './api';
 import { Config } from './types';
@@ -19,7 +19,17 @@ const App: React.FC = () => {
       const [configData, statusData] = await Promise.all([getConfig(), getStatus()]);
       setConfig(configData);
       setStatus(statusData.message);
-      form.setFieldsValue(configData);
+      
+      // 为每个持仓项添加 input_type 字段
+      const portfolioWithType = configData.portfolio.map(item => ({
+        ...item,
+        input_type: item.code ? 'stock_code' : 'net_value'
+      }));
+      
+      form.setFieldsValue({
+        ...configData,
+        portfolio: portfolioWithType
+      });
     } catch (error) {
       console.error(error);
       message.error('Failed to load data. Is the backend running?');
@@ -39,9 +49,29 @@ const App: React.FC = () => {
 
   const onFinish = async (values: Config) => {
     try {
-      await updateConfig(values);
+      // 处理每个持仓项，根据 input_type 决定清空哪个字段
+      const processedPortfolio = values.portfolio.map(item => {
+        const processed = { ...item };
+        if ((item as any).input_type === 'net_value') {
+          // 使用净值时，清空 code
+          processed.code = '';
+        } else {
+          // 使用代码时，清空 net_value
+          processed.net_value = undefined;
+        }
+        // 删除临时字段
+        delete (processed as any).input_type;
+        return processed;
+      });
+
+      const finalConfig = {
+        ...values,
+        portfolio: processedPortfolio
+      };
+
+      await updateConfig(finalConfig);
       message.success('Configuration saved successfully');
-      setConfig(values);
+      setConfig(finalConfig);
     } catch (error) {
       message.error('Failed to save configuration');
     }
@@ -92,11 +122,42 @@ const App: React.FC = () => {
                         size="small"
                         columns={[
                             {
-                                title: '代码',
-                                dataIndex: 'code',
+                                title: '类型',
+                                dataIndex: 'input_type',
+                                width: 120,
                                 render: (_, field) => (
-                                    <Form.Item {...field} name={[field.name, 'code']} noStyle rules={[{ required: true }]}>
-                                        <Input placeholder="sh000001" />
+                                    <Form.Item 
+                                        {...field} 
+                                        name={[field.name, 'input_type']} 
+                                        noStyle 
+                                        initialValue="stock_code"
+                                    >
+                                        <Select style={{ width: '100%' }}>
+                                            <Select.Option value="stock_code">股票代码</Select.Option>
+                                            <Select.Option value="net_value">净值</Select.Option>
+                                        </Select>
+                                    </Form.Item>
+                                )
+                            },
+                            {
+                                title: '代码/净值',
+                                dataIndex: 'code_or_value',
+                                render: (_, field) => (
+                                    <Form.Item noStyle shouldUpdate={(prev, cur) => 
+                                        prev.portfolio?.[field.name]?.input_type !== cur.portfolio?.[field.name]?.input_type
+                                    }>
+                                        {({ getFieldValue }) => {
+                                            const inputType = getFieldValue(['portfolio', field.name, 'input_type']) || 'stock_code';
+                                            return inputType === 'stock_code' ? (
+                                                <Form.Item {...field} name={[field.name, 'code']} noStyle>
+                                                    <Input placeholder="sh600519" />
+                                                </Form.Item>
+                                            ) : (
+                                                <Form.Item {...field} name={[field.name, 'net_value']} noStyle>
+                                                    <InputNumber min={0} step={0.0001} placeholder="1.2345" style={{ width: '100%' }} />
+                                                </Form.Item>
+                                            );
+                                        }}
                                     </Form.Item>
                                 )
                             },
